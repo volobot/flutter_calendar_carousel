@@ -1,18 +1,25 @@
 library flutter_calendar_dooboo;
 
 import 'dart:async';
+import 'dart:core';
 
 import 'package:date_utils/date_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_calendar_carousel/classes/event_list.dart';
-import 'package:flutter_calendar_carousel/src/default_styles.dart';
 import 'package:flutter_calendar_carousel/src/calendar_header.dart';
+import 'package:flutter_calendar_carousel/src/default_styles.dart';
 import 'package:flutter_calendar_carousel/src/weekday_row.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart' show DateFormat;
+
 export 'package:flutter_calendar_carousel/classes/event_list.dart';
 
 typedef MarkedDateIconBuilder<T> = Widget Function(T event);
+
+class SelectionMode {
+  static const int SINGLE = 0;
+  static const int MULTI = 1;
+}
 
 class CalendarCarousel<T> extends StatefulWidget {
   final double viewportFraction;
@@ -78,71 +85,77 @@ class CalendarCarousel<T> extends StatefulWidget {
   final bool isScrollable;
   final bool showOnlyCurrentMonthDate;
   final bool pageSnapping;
+  final int selectionMode;
+  final List<DateTime> selectedDates;
 
-  CalendarCarousel({
-    this.viewportFraction = 1.0,
-    this.prevDaysTextStyle,
-    this.daysTextStyle,
-    this.nextDaysTextStyle,
-    this.prevMonthDayBorderColor = Colors.transparent,
-    this.thisMonthDayBorderColor = Colors.transparent,
-    this.nextMonthDayBorderColor = Colors.transparent,
-    this.dayPadding = 2.0,
-    this.height = double.infinity,
-    this.width = double.infinity,
-    this.todayTextStyle,
-    this.dayButtonColor = Colors.transparent,
-    this.todayBorderColor = Colors.red,
-    this.todayButtonColor = Colors.red,
-    this.selectedDateTime,
-    this.selectedDayTextStyle,
-    this.selectedDayBorderColor = Colors.green,
-    this.selectedDayButtonColor = Colors.green,
-    this.daysHaveCircularBorder,
-    this.onDayPressed,
-    this.weekdayTextStyle,
-    this.iconColor = Colors.blueAccent,
-    this.headerTextStyle,
-    this.headerText,
-    this.weekendTextStyle,
-    @deprecated this.markedDates,
-    this.markedDatesMap,
-    @deprecated this.markedDateColor,
-    this.markedDateShowIcon = false,
-    this.markedDateIconBorderColor,
-    this.markedDateIconMaxShown = 2,
-    this.markedDateIconMargin = 5.0,
-    this.markedDateIconOffset = 5.0,
-    this.markedDateIconBuilder,
-    this.markedDateMoreShowTotal,
-    this.markedDateMoreCustomDecoration,
-    this.markedDateMoreCustomTextStyle,
-    this.markedDateWidget,
-    this.headerMargin = const EdgeInsets.symmetric(vertical: 16.0),
-    this.childAspectRatio = 1.0,
-    this.weekDayMargin = const EdgeInsets.only(bottom: 4.0),
-    this.showWeekDays = true,
-    this.weekFormat = false,
-    this.showHeader = true,
-    this.showHeaderButton = true,
-    this.leftButtonIcon,
-    this.rightButtonIcon,
-    this.customGridViewPhysics,
-    this.onCalendarChanged,
-    this.locale = "en",
-    this.firstDayOfWeek,
-    this.minSelectedDate,
-    this.maxSelectedDate,
-    this.inactiveDaysTextStyle,
-    this.inactiveWeekendTextStyle,
-    this.headerTitleTouchable = false,
-    this.onHeaderTitlePressed,
-    this.weekDayFormat = WeekdayFormat.short,
-    this.staticSixWeekFormat = false,
-    this.isScrollable = true,
-    this.showOnlyCurrentMonthDate = false,
-    this.pageSnapping = false,
-  });
+  final Color selectedColor;
+
+  CalendarCarousel(
+      {this.viewportFraction = 1.0,
+      this.prevDaysTextStyle,
+      this.daysTextStyle,
+      this.nextDaysTextStyle,
+      this.prevMonthDayBorderColor = Colors.transparent,
+      this.thisMonthDayBorderColor = Colors.transparent,
+      this.nextMonthDayBorderColor = Colors.transparent,
+      this.dayPadding = 2.0,
+      this.height = double.infinity,
+      this.width = double.infinity,
+      this.todayTextStyle,
+      this.dayButtonColor = Colors.transparent,
+      this.todayBorderColor = Colors.red,
+      this.todayButtonColor = Colors.red,
+      this.selectedDateTime,
+      this.selectedDayTextStyle,
+      this.selectedDayBorderColor = Colors.green,
+      this.selectedDayButtonColor = Colors.green,
+      this.daysHaveCircularBorder,
+      this.onDayPressed,
+      this.weekdayTextStyle,
+      this.iconColor = Colors.blueAccent,
+      this.headerTextStyle,
+      this.headerText,
+      this.weekendTextStyle,
+      @deprecated this.markedDates,
+      this.markedDatesMap,
+      @deprecated this.markedDateColor,
+      this.markedDateShowIcon = false,
+      this.markedDateIconBorderColor,
+      this.markedDateIconMaxShown = 2,
+      this.markedDateIconMargin = 5.0,
+      this.markedDateIconOffset = 5.0,
+      this.markedDateIconBuilder,
+      this.markedDateMoreShowTotal,
+      this.markedDateMoreCustomDecoration,
+      this.markedDateMoreCustomTextStyle,
+      this.markedDateWidget,
+      this.headerMargin = const EdgeInsets.symmetric(vertical: 16.0),
+      this.childAspectRatio = 1.0,
+      this.weekDayMargin = const EdgeInsets.only(bottom: 4.0),
+      this.showWeekDays = true,
+      this.weekFormat = false,
+      this.showHeader = true,
+      this.showHeaderButton = true,
+      this.leftButtonIcon,
+      this.rightButtonIcon,
+      this.customGridViewPhysics,
+      this.onCalendarChanged,
+      this.locale = "en",
+      this.firstDayOfWeek,
+      this.minSelectedDate,
+      this.maxSelectedDate,
+      this.inactiveDaysTextStyle,
+      this.inactiveWeekendTextStyle,
+      this.headerTitleTouchable = false,
+      this.onHeaderTitlePressed,
+      this.weekDayFormat = WeekdayFormat.short,
+      this.staticSixWeekFormat = false,
+      this.isScrollable = true,
+      this.showOnlyCurrentMonthDate = false,
+      this.pageSnapping = false,
+      this.selectionMode = SelectionMode.SINGLE,
+      this.selectedDates,
+      this.selectedColor = Colors.red});
 
   @override
   _CalendarState<T> createState() => _CalendarState<T>();
@@ -319,6 +332,22 @@ class _CalendarState<T> extends State<CalendarCarousel<T>> {
                       widget.selectedDateTime.year == year &&
                       widget.selectedDateTime.month == month &&
                       widget.selectedDateTime.day == index + 1 - _startWeekday;
+                  bool isInMultiSelect = false;
+                  if (widget.selectionMode == SelectionMode.MULTI) {
+                    if (widget.selectedDates != null) {
+                      for (int multiIndex = 0;
+                          multiIndex < widget.selectedDates.length;
+                          multiIndex++) {
+                        isInMultiSelect = widget.selectedDates[multiIndex] !=
+                                null &&
+                            widget.selectedDates[multiIndex].year == year &&
+                            widget.selectedDates[multiIndex].month == month &&
+                            widget.selectedDates[multiIndex].day ==
+                                index + 1 - _startWeekday;
+                        if (isInMultiSelect) break;
+                      }
+                    }
+                  }
                   bool isPrevMonthDay = index < _startWeekday;
                   bool isNextMonthDay = index >=
                       (DateTime(year, month + 1, 0).day) + _startWeekday;
@@ -362,12 +391,14 @@ class _CalendarState<T> extends State<CalendarCarousel<T>> {
                   return Container(
                     margin: EdgeInsets.all(widget.dayPadding),
                     child: FlatButton(
-                      color:
-                          isSelectedDay && widget.selectedDayButtonColor != null
+                      color: !isInMultiSelect
+                          ? isSelectedDay &&
+                                  widget.selectedDayButtonColor != null
                               ? widget.selectedDayButtonColor
                               : isToday && widget.todayButtonColor != null
                                   ? widget.todayButtonColor
-                                  : widget.dayButtonColor,
+                                  : widget.dayButtonColor
+                          : widget.selectedColor,
                       onPressed: () => _onDayPressed(now),
                       padding: EdgeInsets.all(widget.dayPadding),
                       shape: widget.daysHaveCircularBorder == null
@@ -512,6 +543,24 @@ class _CalendarState<T> extends State<CalendarCarousel<T>> {
                         this._selectedDate.year == weekDays[index].year &&
                         this._selectedDate.month == weekDays[index].month &&
                         this._selectedDate.day == weekDays[index].day;
+
+                    bool isInMultiSelect = false;
+                    if (widget.selectionMode == SelectionMode.MULTI) {
+                      if (widget.selectedDates != null) {
+                        for (int multiIndex = 0;
+                        multiIndex < widget.selectedDates.length;
+                        multiIndex++) {
+                          isInMultiSelect = widget.selectedDates[multiIndex] !=
+                              null &&
+                              widget.selectedDates[multiIndex].year == weekDays[index].year &&
+                              widget.selectedDates[multiIndex].month == weekDays[index].month &&
+                              widget.selectedDates[multiIndex].day ==
+                                  weekDays[index].day;
+                          if (isInMultiSelect) break;
+                        }
+                      }
+                    }
+
                     bool isPrevMonthDay =
                         weekDays[index].month < this._selectedDate.month;
                     bool isNextMonthDay =
@@ -554,12 +603,12 @@ class _CalendarState<T> extends State<CalendarCarousel<T>> {
                     return Container(
                       margin: EdgeInsets.all(widget.dayPadding),
                       child: FlatButton(
-                        color: isSelectedDay &&
+                        color: !isInMultiSelect? isSelectedDay &&
                                 widget.selectedDayButtonColor != null
                             ? widget.selectedDayButtonColor
                             : isToday && widget.todayButtonColor != null
                                 ? widget.todayButtonColor
-                                : widget.dayButtonColor,
+                                : widget.dayButtonColor:widget.selectedColor,
                         onPressed: () => _onDayPressed(now),
                         padding: EdgeInsets.all(widget.dayPadding),
                         shape: widget.daysHaveCircularBorder == null

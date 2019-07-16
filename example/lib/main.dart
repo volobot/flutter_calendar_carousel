@@ -145,40 +145,7 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     /// Example with custom icon
-    _calendarCarousel = CalendarCarousel<Event>(
-      onDayPressed: (DateTime date, List<Event> events) {
-        this.setState(() => _currentDate = date);
-        events.forEach((event) => print(event.title));
-      },
-      weekendTextStyle: TextStyle(
-        color: Colors.red,
-      ),
-      thisMonthDayBorderColor: Colors.grey,
-//          weekDays: null, /// for pass null when you do not want to render weekDays
-//          headerText: Container( /// Example for rendering custom header
-//            child: Text('Custom Header'),
-//          ),
-//          markedDates: _markedDate,
-      weekFormat: true,
-      markedDatesMap: _markedDateMap,
-      height: 200.0,
-      selectedDateTime: _currentDate2,
-//          daysHaveCircularBorder: false, /// null for not rendering any border, true for circular border, false for rectangular border
-      customGridViewPhysics: NeverScrollableScrollPhysics(),
-      markedDateShowIcon: true,
-      markedDateIconMaxShown: 2,
-      todayTextStyle: TextStyle(
-        color: Colors.blue,
-      ),
-      markedDateIconBuilder: (event) {
-        return event.icon;
-      },
-      todayBorderColor: Colors.green,
-      markedDateMoreShowTotal:
-          false, // null for not showing hidden events indicator
-//          markedDateIconMargin: 9,
-//          markedDateIconOffset: 3,
-    );
+    _calendarCarousel =
 
     /// Example Calendar Carousel without header and custom prev & next button
     _calendarCarouselNoHeader = CalendarCarousel<Event>(
@@ -213,7 +180,6 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
       minSelectedDate: _currentDate,
       maxSelectedDate: _currentDate.add(Duration(days: 60)),
-//      inactiveDateColor: Colors.black12,
       onCalendarChanged: (DateTime date) {
         this.setState(() => _currentMonth = DateFormat.yMMM().format(date));
       },
@@ -223,64 +189,19 @@ class _MyHomePageState extends State<MyHomePage> {
         appBar: new AppBar(
           title: new Text(widget.title),
         ),
-        body: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: <Widget>[
-              //custom icon
-              Container(
-                margin: EdgeInsets.symmetric(horizontal: 16.0),
-                child: _calendarCarousel,
-              ), // This trailing comma makes auto-formatting nicer for build methods.
-              //custom icon without header
-              Container(
-                margin: EdgeInsets.only(
-                  top: 30.0,
-                  bottom: 16.0,
-                  left: 16.0,
-                  right: 16.0,
-                ),
-                child: new Row(
-                  children: <Widget>[
-                    Expanded(
-                        child: Text(
-                      _currentMonth,
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 24.0,
-                      ),
-                    )),
-                    FlatButton(
-                      child: Text('PREV'),
-                      onPressed: () {
-                        setState(() {
-                          _currentDate2 =
-                              _currentDate2.subtract(Duration(days: 30));
-                          _currentMonth =
-                              DateFormat.yMMM().format(_currentDate2);
-                        });
-                      },
-                    ),
-                    FlatButton(
-                      child: Text('NEXT'),
-                      onPressed: () {
-                        setState(() {
-                          _currentDate2 = _currentDate2.add(Duration(days: 30));
-                          _currentMonth =
-                              DateFormat.yMMM().format(_currentDate2);
-                        });
-                      },
-                    )
-                  ],
-                ),
-              ),
-              Container(
-                margin: EdgeInsets.symmetric(horizontal: 16.0),
-                child: _calendarCarouselNoHeader,
-              ), //
-            ],
+        body: CalendarCarousel<Event>(
+          onDayPressed: (DateTime date, List<Event> events) {
+            this.setState(() => _currentDate = date);
+            events.forEach((event) => print(event.title));
+          },
+          weekendTextStyle: TextStyle(
+            color: Colors.red,
           ),
+          thisMonthDayBorderColor: Colors.grey,
+          height: 420.0,
+          todayTextStyle: TextStyle(
+            color: Colors.blue,
+          ),// null for not showing hidden events indicator
         ));
   }
 }
